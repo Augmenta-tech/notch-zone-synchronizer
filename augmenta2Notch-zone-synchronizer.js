@@ -11,11 +11,12 @@ var augmentaZoneNodeName = "Augmenta zones";
 var offsetGraph = 50;
 
 // tmp var for example
-var currentNodeName = "myBoxZone";
+var currentZoneName = "testZone";
 
 // Json
 req = { method: 'GET' };
-NFetch("https://exampleapi.notch.one/tests/getJSON", req, getJSON);
+//NFetch("https://exampleapi.notch.one/tests/getJSON", req, getJSON);
+NFetch("http://localhost:20000", req, getJSON);
 var load;
 
 function Init()
@@ -52,11 +53,6 @@ function Update()
     if (SyncZones != 0)
     {
         Log("Sync zones triggered...");
-        /* When calling SyncZones by changing value, it triggers a lot of json
-        requests and only the first one succeeds, to fix that behavior, one approach
-        would be to call a singleton timer instead. Could not figure out how to make
-        it work yet */
-        //Timer(1.0, syncZones, false);
         syncZones();
     }
 }
@@ -69,27 +65,48 @@ function syncZones()
     augmentaScriptNode.SetFloat('Input Parameters.SyncZones', 0);
 }
 
-// Example with notch http json
 function getJSON(response)
 {
-    if (response.ok && response.status === 200)
+    if (response && response.ok && response.status === 200)
     {
         json = response.json();
-        Log(json);
-        Log(json['elementExamples']['ex_unicodeStr']);
-        Log(json['elementExamples']['ex_string']);
-        Log(json['elementExamples']['ex_integer']);
-        Log(json['elementExamples']['ex_float']);
+        if(json) {
+            Log("Json load received");
+        } else {
+            Log("Did not receive Json load !");
+        }
+        // TODO : Parsing all zones and their name
+        Log(currentZoneName);
+        var currentPosition = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
+            [currentZoneName]['CONTENTS']['position']['VALUE'];
+        Log(currentPosition);
+        var currentRotation = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
+            [currentZoneName]['CONTENTS']['rotation']['VALUE'];
+        Log(currentRotation);
+        var currentShape = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
+            [currentZoneName]['CONTENTS']['shape']['VALUE'];
+        Log(currentShape);
+        if(currentShape == "Box")
+        {
+            var currentScale = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
+            [currentZoneName]['CONTENTS']['box']['CONTENTS']['boxSize']['VALUE'];
+            Log(currentScale);
+        } else {
+            Log("not a box");
+        }
+         
+    } else {
+        Log("Did not receive Json load !"); 
     }
 }
 
 // Example with one shape with tmp var currentNodeName
 function syncShapeNode()
 {
-    Log("Synchronizing current Node");
     // Get current node position to place shapes node below
     augmentaScriptGraphPosition = augmentaScriptNode.GetNodeGraphPosition();
-    currentNode = layer.FindNode(currentNodeName);
+    Log("Synchronizing current Zone");
+    currentNode = layer.FindNode(currentZoneName);
     if(currentNode)
     {
         Log("Node found")
