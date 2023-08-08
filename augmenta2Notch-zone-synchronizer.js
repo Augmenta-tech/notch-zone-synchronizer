@@ -21,7 +21,7 @@ function Init()
     layer = Document.GetLayer(0);
     augmentaScriptNode = layer.FindNode(augmentaScriptNodeName);
     Initialize();
-} 
+}
 
 function Initialize()
 {
@@ -49,7 +49,7 @@ function Update()
     {
         Log("Sync zones triggered...")
         augmentaScriptNode.SetFloat('Input Parameters.SyncZones', 0);
-        //syncZones();
+        syncZones();
     }
 }
 
