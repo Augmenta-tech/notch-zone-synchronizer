@@ -8,7 +8,11 @@ When manually triggered this plugin does :
 
 ## Install
 
-Get the example or follow this instructions to make it work from a blank notch project 
+Requirement
+- Notch license (at least student, if you need to save the patch)
+- Augmenta OSC remote control enabled
+
+Get the provided example or follow this instructions to make it work from a blank notch project 
 
 - Create a Javascript node and rename it to "Augmenta zone synchronizer"
 - On the node inspector : Add Global Input (float) and rename it to "SyncZones"
