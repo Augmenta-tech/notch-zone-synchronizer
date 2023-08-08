@@ -52,6 +52,10 @@ function Update()
     if (SyncZones != 0)
     {
         Log("Sync zones triggered...");
+        /* When calling SyncZones by changing value, it triggers a lot of json
+        requests and only the first one succeeds, to fix that behavior, one approach
+        would be to call a singleton timer instead. Could not figure out how to make
+        it work yet */
         //Timer(1.0, syncZones, false);
         syncZones();
     }
