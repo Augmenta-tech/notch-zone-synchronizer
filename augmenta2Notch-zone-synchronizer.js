@@ -10,7 +10,7 @@ var augmentaZoneNode;
 var augmentaZoneNodeName = "Augmenta zones";
 var offsetGraph = 50;
 
-// tmp var
+// tmp var for example
 var currentNodeName = "myBoxZone";
 
 // Json
@@ -48,10 +48,11 @@ function Initialize()
 
 function Update()
 {
+    // Trig sync by changing value to input parameters SyncZones
     if (SyncZones != 0)
     {
-        Log("Sync zones triggered...")
-        augmentaScriptNode.SetFloat('Input Parameters.SyncZones', 0);
+        Log("Sync zones triggered...");
+        //Timer(1.0, syncZones, false);
         syncZones();
     }
 }
@@ -59,10 +60,9 @@ function Update()
 function syncZones()
 {
     Initialize();
-    //getJSON(load);
-    // Get current node position to place shapes node below
-    augmentaScriptGraphPosition = augmentaScriptNode.GetNodeGraphPosition();
+    getJSON(load);
     syncShapeNode();
+    augmentaScriptNode.SetFloat('Input Parameters.SyncZones', 0);
 }
 
 // Example with notch http json
@@ -83,6 +83,8 @@ function getJSON(response)
 function syncShapeNode()
 {
     Log("Synchronizing current Node");
+    // Get current node position to place shapes node below
+    augmentaScriptGraphPosition = augmentaScriptNode.GetNodeGraphPosition();
     currentNode = layer.FindNode(currentNodeName);
     if(currentNode)
     {
@@ -93,7 +95,8 @@ function syncShapeNode()
         currentNode.SetName(currentNodeName);
         augmentaZoneNode.AddChild(currentNode);
     }
-    currentNode.SetNodeGraphPosition(augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + 2*offsetGraph);
+    currentNode.SetNodeGraphPosition(
+        augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + 2*offsetGraph);
     Log("Updating node transform");
     currentNode.SetFloat('Transform.Position X', 1.3);
     // Warning : Looks like there is a value transformation for rotation
