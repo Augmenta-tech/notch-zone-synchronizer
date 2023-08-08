@@ -60,7 +60,6 @@ function syncZones()
     
     // Json request and callback
     req = { method: 'GET' };
-    //NFetch("https://exampleapi.notch.one/tests/getJSON", req, getJSON);
     NFetch("http://localhost:20000", req, getJSON);
     
     // reset button
