@@ -15,7 +15,7 @@ var currentZoneName = "testZone";
 var currentPosition;
 var currentRotation;
 var currentShape;
-var currentScale;
+var currentSize;
 
 
 function Init()
@@ -84,14 +84,14 @@ function getJSON(response)
             currentRotation = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
                 [currentZoneName]['CONTENTS']['rotation']['VALUE'];
             //Log(currentRotation);
-            var currentShape = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
+            currentShape = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
                 [currentZoneName]['CONTENTS']['shape']['VALUE'];
             //Log(currentShape);
             if(currentShape == "Box")
             {
-                currentScale = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
+                currentSize = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
                 [currentZoneName]['CONTENTS']['box']['CONTENTS']['boxSize']['VALUE'];
-                //Log(currentScale);
+                //Log(currentSize);
             } else {
                 Log("not a box");
             }
@@ -113,7 +113,7 @@ function syncShapeNodes()
     currentNode = layer.FindNode(currentZoneName);
     if(currentNode)
     {
-        Log("Node found")
+        //Log("Node found")
     } else {
         Log("Node not found, creating node...");
         currentNode = layer.CreateNode("Geometry::Shape 3D");
@@ -130,15 +130,16 @@ function syncShapeNodes()
     currentNode.SetFloat('Transform.Rotation Heading', currentRotation[0]);
     currentNode.SetFloat('Transform.Rotation Pitch', currentRotation[1]);
     currentNode.SetFloat('Transform.Rotation Bank', currentRotation[2]);
-    currentNode.SetFloat('Transform.Scale X', currentScale[0]);
-    currentNode.SetFloat('Transform.Scale Y', currentScale[1]);
-    currentNode.SetFloat('Transform.Scale Z', currentScale[2]);
 
     Log("Updating node attributes");
     if(currentShape == "Box")
     {
-        Log("test is a box");
         currentNode.SetFloat("Attributes.Shape Type", 1); // 1 is Box
+        currentNode.SetFloat('Attributes.Size X', currentSize[0]);
+        currentNode.SetFloat('Attributes.Size Y', currentSize[1]);
+        currentNode.SetFloat('Attributes.Size Z', currentSize[2]);
+    } else {
+        //Log("test is not a box");
     }
 }
 
