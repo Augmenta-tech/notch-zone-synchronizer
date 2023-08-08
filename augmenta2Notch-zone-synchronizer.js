@@ -5,15 +5,18 @@ var SyncZones;
 var layer;
 var augmentaScriptNode;
 var augmentaScriptNodeName = "Augmenta zone synchronizer";
+var augmentaScriptGraphPosition;
 var augmentaZoneNode;
 var augmentaZoneNodeName = "Augmenta zones";
+var offsetGraph = 50;
 
 // tmp var
-var currentNodeName = "mySphereZone";
+var currentNodeName = "myBoxZone";
 
 // Json
 req = { method: 'GET' };
 NFetch("https://exampleapi.notch.one/tests/getJSON", req, getJSON);
+var load;
 
 function Init()
 {
@@ -28,7 +31,7 @@ function Initialize()
     SyncZones = 0;
     augmentaScriptNode.SetFloat('Input Parameters.SyncZones', SyncZones);
     // Get augmenta script node Graph position
-    graphPositionStart = augmentaScriptNode.GetNodeGraphPosition();
+    augmentaScriptGraphPosition = augmentaScriptNode.GetNodeGraphPosition();
 
     // Create augmenta null node
     currentNode = layer.FindNode(augmentaZoneNodeName);
@@ -40,7 +43,7 @@ function Initialize()
         currentNode = layer.CreateNode("Geometry::Null");
         currentNode.SetName(augmentaZoneNodeName);
     }
-    currentNode.SetNodeGraphPosition(graphPositionStart[0], graphPositionStart[1] + 50);
+    currentNode.SetNodeGraphPosition(augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + offsetGraph);
 }
 
 function Update()
@@ -56,9 +59,9 @@ function Update()
 function syncZones()
 {
     Initialize();
-    getJSON();
+    //getJSON(load);
     // Get current node position to place shapes node below
-    graphPositionStart = augmentaScriptNode.GetNodeGraphPosition();
+    augmentaScriptGraphPosition = augmentaScriptNode.GetNodeGraphPosition();
     syncShapeNode();
 }
 
@@ -88,8 +91,9 @@ function syncShapeNode()
         Log("Node not found, creating node...");
         currentNode = layer.CreateNode("Geometry::Shape 3D");
         currentNode.SetName(currentNodeName);
-        currentNode.SetNodeGraphPosition(graphPositionStart.x, graphPositionStart.y);
+        augmentaZoneNode.AddChild(currentNode);
     }
+    currentNode.SetNodeGraphPosition(augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + 2*offsetGraph);
     Log("Updating node transform");
     currentNode.SetFloat('Transform.Position X', 1.3);
     // Warning : Looks like there is a value transformation for rotation
