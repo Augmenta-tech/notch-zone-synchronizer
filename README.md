@@ -22,9 +22,13 @@ Get the provided example or follow this instructions to make it work from a blan
 
 ## Use
 
+This prototype is only synchronizing one box zone that should be named testZone in Augmenta
+
 Fill RemoteAddress with the Augmenta server address and RemotePort with the port
 
 Triggering options
 - Manually in the patch by changing the SyncZones value
-- Osc (through and OSC modifier)
-- key pressed 'r' at runtime
+- Osc (through and OSC modifier) (not tested)
+- key pressed 'r' at runtime (not tested)
+
+In Notch patch, press ctrl+R on the "Augmenta zones" node to see all the zones displayed 
