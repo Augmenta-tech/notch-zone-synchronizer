@@ -16,12 +16,15 @@ Get the provided example or follow this instructions to make it work from a blan
 
 - Create a Javascript node and rename it to "Augmenta zone synchronizer"
 - On the node inspector : Add Global Input (float) and rename it to "SyncZones"
+- On the node inspector : Add 2x Global Input (string) and rename it to "RemoteAddress" and "RemotePort"
 - On the node inspector : Make it point to the Javascript File
 
 
 ## Use
 
+Fill RemoteAddress with the Augmenta server address and RemotePort with the port
+
 Triggering options
-- key pressed 'r'
-- Osc (through and OSC modifier)
 - Manually in the patch by changing the SyncZones value
+- Osc (through and OSC modifier)
+- key pressed 'r' at runtime
