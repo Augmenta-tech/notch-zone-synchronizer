@@ -1,7 +1,7 @@
 // input var
 var SyncZones;
-var RemoteAddress = "localhost";
-var RemotePort = "20000";
+var RemoteAddress;
+var RemotePort;
 
 // global var
 var layer;
@@ -11,7 +11,6 @@ var augmentaScriptGraphPosition;
 var augmentaZoneNode;
 var augmentaZoneNodeName = "Augmenta zones";
 var offsetGraph = 50;
-var httpPrefix = "http://";
 
 // tmp var for example
 var currentZoneName = "testZone";
@@ -34,16 +33,16 @@ function Initialize()
     augmentaScriptGraphPosition = augmentaScriptNode.GetNodeGraphPosition();
 
     // Create augmenta null node
-    currentNode = layer.FindNode(augmentaZoneNodeName);
-    if(currentNode)
+    augmentaZoneNode = layer.FindNode(augmentaZoneNodeName);
+    if(augmentaZoneNode)
     {
         //Log("Augmenta zones node found")
     } else {
         Log("Augmenta zones node not found, creating node...");
-        currentNode = layer.CreateNode("Geometry::Null");
-        currentNode.SetName(augmentaZoneNodeName);
+        augmentaZoneNode = layer.CreateNode("Geometry::Null");
+        augmentaZoneNode.SetName(augmentaZoneNodeName);
     }
-    currentNode.SetNodeGraphPosition(augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + offsetGraph);
+    augmentaZoneNode.SetNodeGraphPosition(augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + offsetGraph);
 }
 
 function Update()
@@ -62,8 +61,7 @@ function syncZones()
     
     // Json request and callback
     req = { method: 'GET' };
-    var currentAddress = httpPrefix + RemoteAddress + RemotePort;
-    Log(currentAddress);
+    var currentAddress = "http://" + RemoteAddress + ":" + RemotePort;
     NFetch(currentAddress, req, getJSON);
     
     // reset button
