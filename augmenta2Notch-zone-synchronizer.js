@@ -1,5 +1,7 @@
 // input var
 var SyncZones;
+var RemoteAddress = "localhost";
+var RemotePort = "20000";
 
 // global var
 var layer;
@@ -9,6 +11,7 @@ var augmentaScriptGraphPosition;
 var augmentaZoneNode;
 var augmentaZoneNodeName = "Augmenta zones";
 var offsetGraph = 50;
+var httpPrefix = "http://";
 
 // tmp var for example
 var currentZoneName = "testZone";
@@ -16,7 +19,6 @@ var currentPosition;
 var currentRotation;
 var currentShape;
 var currentSize;
-
 
 function Init()
 {
@@ -60,7 +62,9 @@ function syncZones()
     
     // Json request and callback
     req = { method: 'GET' };
-    NFetch("http://localhost:20000", req, getJSON);
+    var currentAddress = httpPrefix + RemoteAddress + RemotePort;
+    Log(currentAddress);
+    NFetch(currentAddress, req, getJSON);
     
     // reset button
     SyncZones = 0;
