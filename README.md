@@ -18,6 +18,7 @@ Get the provided example or follow this instructions to make it work from a blan
 - On the node inspector : Add Global Input (float) and rename it to "SyncZones"
 - On the node inspector : Add 2x Global Input (string) and rename it to "RemoteAddress" and "RemotePort"
 - On the node inspector : Make it point to the Javascript File
+- In project > settings > protocols, enable osc and TUIO (in case you need it)
 
 
 ## Use

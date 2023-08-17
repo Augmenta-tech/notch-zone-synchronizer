@@ -10,7 +10,7 @@ var augmentaScriptNodeName = "Augmenta zone synchronizer";
 var augmentaScriptGraphPosition;
 var augmentaZoneNode;
 var augmentaZoneNodeName = "Augmenta zones";
-var offsetGraph = 50;
+var offsetGraph = 60;
 
 // tmp var for example
 var currentZoneName = "testZone";
@@ -78,7 +78,7 @@ function getJSON(response)
             Log("Json load received");
 
             // TODO : Parsing all zones and their name
-            Log(currentZoneName);
+            //Log(currentZoneName);
             currentPosition = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
                 [currentZoneName]['CONTENTS']['position']['VALUE'];
             //Log(currentPosition);
