@@ -144,7 +144,7 @@ function syncShapeNodes()
     }
 }
 
-// Do we want this ?
+// TOTEST
 function OnKeyPress(key)
 {
     if (key == 'r')
