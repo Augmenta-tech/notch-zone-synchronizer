@@ -79,19 +79,19 @@ function getJSON(response)
 
             // TODO : Parsing all zones and their name
             //Log(currentZoneName);
-            currentPosition = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
-                [currentZoneName]['CONTENTS']['position']['VALUE'];
+            currentPosition = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['zones']['CONTENTS']
+                [currentZoneName]['CONTENTS']['shapeParameters']['CONTENTS']['position']['VALUE'];
             //Log(currentPosition);
-            currentRotation = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
-                [currentZoneName]['CONTENTS']['rotation']['VALUE'];
+            currentRotation = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['zones']['CONTENTS']
+                [currentZoneName]['CONTENTS']['shapeParameters']['CONTENTS']['rotation']['VALUE'];
             //Log(currentRotation);
-            currentShape = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
+            currentShape = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['zones']['CONTENTS']
                 [currentZoneName]['CONTENTS']['shape']['VALUE'];
             //Log(currentShape);
             if(currentShape == "Box")
             {
-                currentSize = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
-                [currentZoneName]['CONTENTS']['box']['CONTENTS']['boxSize']['VALUE'];
+                currentSize = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['zones']['CONTENTS']
+                [currentZoneName]['CONTENTS']['shapeParameters']['CONTENTS']['boxSize']['VALUE'];
                 //Log(currentSize);
             } else {
                 Log("not a box");
@@ -114,7 +114,7 @@ function syncShapeNodes()
     currentNode = layer.FindNode(currentZoneName);
     if(currentNode)
     {
-        //Log("Node found")
+        Log("Node found")
     } else {
         Log("Node not found, creating node...");
         currentNode = layer.CreateNode("Geometry::Shape 3D");
@@ -144,7 +144,7 @@ function syncShapeNodes()
     }
 }
 
-// TOTEST
+// Do we want this ?
 function OnKeyPress(key)
 {
     if (key == 'r')
