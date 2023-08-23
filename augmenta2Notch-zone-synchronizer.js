@@ -28,8 +28,14 @@ function Initialize()
     // Create augmenta null node
     augmentaZoneNode = layer.FindNode(augmentaZoneNodeName);
     if(augmentaZoneNode)
-    {
-        //Log("Augmenta zones node found")
+    {       
+        numChildren = augmentaZoneNode.GetNumChildren();
+        for (i = 0; i < numChildren; i++) {
+            child = augmentaZoneNode.GetChild(0);
+            augmentaZoneNode.RemoveChild(child);
+            child.DeleteNode();
+        }
+
     } else {
         Log("Augmenta zones node not found, creating node...");
         augmentaZoneNode = layer.CreateNode("Geometry::Null");
@@ -104,13 +110,13 @@ function getJSON(response)
 function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape, currentSize)
 {
     Log("Synchronizing current Zone");
-        //Log("Node found")
-    } else {
-        Log("Node not found, creating node...");
-        currentNode = layer.CreateNode("Geometry::Shape 3D");
-        currentNode.SetName(currentZoneName);
-        augmentaZoneNode.AddChild(currentNode);
-    }
+
+
+    Log("Node not found, creating node...");
+    currentNode = layer.CreateNode("Geometry::Shape 3D");
+    currentNode.SetName(namecur);
+    augmentaZoneNode.AddChild(currentNode);
+
     currentNode.SetNodeGraphPosition(
         augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + 2*offsetGraph);
     Log("Updating node transform");
