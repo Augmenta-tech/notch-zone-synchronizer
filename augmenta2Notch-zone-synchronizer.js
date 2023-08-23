@@ -12,13 +12,6 @@ var augmentaZoneNode;
 var augmentaZoneNodeName = "Augmenta zones";
 var offsetGraph = 60;
 
-// tmp var for example
-var currentZoneName = "testZone";
-var currentPosition;
-var currentRotation;
-var currentShape;
-var currentSize;
-
 function Init()
 {
 	Log("Augmenta zones synchronizer v0.1");
@@ -76,28 +69,28 @@ function getJSON(response)
         json = response.json();
         if(json) {
             Log("Json load received");
+            
+            var zoneList = json.CONTENTS.worlds.CONTENTS.world.CONTENTS.children.CONTENTS.scene.CONTENTS.children.CONTENTS;
 
-            // TODO : Parsing all zones and their name
-            //Log(currentZoneName);
-            currentPosition = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
-                [currentZoneName]['CONTENTS']['position']['VALUE'];
-            //Log(currentPosition);
-            currentRotation = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
-                [currentZoneName]['CONTENTS']['rotation']['VALUE'];
-            //Log(currentRotation);
-            currentShape = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
-                [currentZoneName]['CONTENTS']['shape']['VALUE'];
-            //Log(currentShape);
-            if(currentShape == "Box")
-            {
-                currentSize = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['children']['CONTENTS']['scene']['CONTENTS']['children']['CONTENTS']
-                [currentZoneName]['CONTENTS']['box']['CONTENTS']['boxSize']['VALUE'];
-                //Log(currentSize);
-            } else {
-                Log("not a box");
+            for (var pas = 0; pas < Object.keys(zoneList).length; pas++) {
+
+                var objectZoneList = Object.keys(zoneList)[pas];
+
+                var currentPosition = zoneList[objectZoneList].CONTENTS.position.VALUE;
+                var currentRotation = zoneList[objectZoneList].CONTENTS.rotation.VALUE;
+                var currentShape = zoneList[objectZoneList].CONTENTS.shape.VALUE;
+                var currentSize
+
+                if (currentShape == "Box") {
+                    currentSize = zoneList[objectZoneList].CONTENTS.box.CONTENTS.boxSize.VALUE;
+                } else {
+                    Log("not a box");
+                }
+                // Creating/updating Notch shape nodes
+                syncShapeNodes(objectZoneList, currentPosition, currentRotation, currentShape, currentSize);
             }
-            // Creating/updating Notch shape nodes
-            syncShapeNodes();
+
+            
         } else {
             Log("Did not receive Json load !");
         }
@@ -108,12 +101,9 @@ function getJSON(response)
 }
 
 // Example with one shape with tmp var currentNodeName
-function syncShapeNodes()
+function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape, currentSize)
 {
     Log("Synchronizing current Zone");
-    currentNode = layer.FindNode(currentZoneName);
-    if(currentNode)
-    {
         //Log("Node found")
     } else {
         Log("Node not found, creating node...");
@@ -128,9 +118,6 @@ function syncShapeNodes()
     currentNode.SetFloat('Transform.Position Y', currentPosition[1]);
     currentNode.SetFloat('Transform.Position Z', currentPosition[2]);
     // Warning : Looks like there is a value transformation for rotation
-    currentNode.SetFloat('Transform.Rotation Heading', currentRotation[0]);
-    currentNode.SetFloat('Transform.Rotation Pitch', currentRotation[1]);
-    currentNode.SetFloat('Transform.Rotation Bank', currentRotation[2]);
 
     Log("Updating node attributes");
     if(currentShape == "Box")
@@ -147,6 +134,7 @@ function syncShapeNodes()
 // TOTEST
 function OnKeyPress(key)
 {
+    Log("clavier");
     if (key == 'r')
     {
         Log("You pressed key r ! Starting Augmenta zone sync...")
