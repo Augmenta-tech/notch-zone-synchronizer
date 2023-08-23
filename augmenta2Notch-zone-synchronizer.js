@@ -12,13 +12,6 @@ var augmentaZoneNode;
 var augmentaZoneNodeName = "Augmenta zones";
 var offsetGraph = 60;
 
-// tmp var for example
-var currentZoneName = "testZone";
-var currentPosition;
-var currentRotation;
-var currentShape;
-var currentSize;
-
 function Init()
 {
 	Log("Augmenta zones synchronizer v0.1");
@@ -35,8 +28,14 @@ function Initialize()
     // Create augmenta null node
     augmentaZoneNode = layer.FindNode(augmentaZoneNodeName);
     if(augmentaZoneNode)
-    {
-        //Log("Augmenta zones node found")
+    {       
+        numChildren = augmentaZoneNode.GetNumChildren();
+        for (i = 0; i < numChildren; i++) {
+            child = augmentaZoneNode.GetChild(0);
+            augmentaZoneNode.RemoveChild(child);
+            child.DeleteNode();
+        }
+
     } else {
         Log("Augmenta zones node not found, creating node...");
         augmentaZoneNode = layer.CreateNode("Geometry::Null");
@@ -71,70 +70,65 @@ function syncZones()
 // Callback
 function getJSON(response)
 {
-    if (response && response.ok && response.status === 200)
-    {
+    if (response && response.ok && response.status === 200) {
         json = response.json();
-        if(json) {
+        if (json) {
             Log("Json load received");
 
-            // TODO : Parsing all zones and their name
-            //Log(currentZoneName);
-            currentPosition = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['zones']['CONTENTS']
-                [currentZoneName]['CONTENTS']['shapeParameters']['CONTENTS']['position']['VALUE'];
-            //Log(currentPosition);
-            currentRotation = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['zones']['CONTENTS']
-                [currentZoneName]['CONTENTS']['shapeParameters']['CONTENTS']['rotation']['VALUE'];
-            //Log(currentRotation);
-            currentShape = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['zones']['CONTENTS']
-                [currentZoneName]['CONTENTS']['shape']['VALUE'];
-            //Log(currentShape);
-            if(currentShape == "Box")
-            {
-                currentSize = json['CONTENTS']['worlds']['CONTENTS']['world']['CONTENTS']['zones']['CONTENTS']
-                [currentZoneName]['CONTENTS']['shapeParameters']['CONTENTS']['boxSize']['VALUE'];
-                //Log(currentSize);
-            } else {
-                Log("not a box");
+            var zoneList = json.CONTENTS.worlds.CONTENTS.world.CONTENTS.zones.CONTENTS;
+
+            for (var pas = 0; pas < Object.keys(zoneList).length; pas++) {
+
+                var objectZoneList = Object.keys(zoneList)[pas];
+
+                var currentPosition = zoneList[objectZoneList].CONTENTS.shapeParameters.CONTENTS.position.VALUE;
+                var currentRotation = zoneList[objectZoneList].CONTENTS.shapeParameters.CONTENTS.rotation.VALUE;
+                var currentShape = zoneList[objectZoneList].CONTENTS.shape.VALUE;
+                var currentSize
+
+                if (currentShape == "Box") {
+                    currentSize = zoneList[objectZoneList].CONTENTS.shapeParameters.CONTENTS.boxSize.VALUE;
+                } else {
+                    Log("not a box");
+                }
+                // Creating/updating Notch shape nodes
+                syncShapeNodes(objectZoneList, currentPosition, currentRotation, currentShape, currentSize);
             }
-            // Creating/updating Notch shape nodes
-            syncShapeNodes();
+
+
         } else {
             Log("Did not receive Json load !");
         }
     } else {
-        Log("Did not receive Json load !"); 
+        Log("Did not receive Json load !");
     }
     return;
 }
 
 // Example with one shape with tmp var currentNodeName
-function syncShapeNodes()
+function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape, currentSize)
 {
     Log("Synchronizing current Zone");
-    currentNode = layer.FindNode(currentZoneName);
-    if(currentNode)
-    {
-        Log("Node found")
-    } else {
-        Log("Node not found, creating node...");
-        currentNode = layer.CreateNode("Geometry::Shape 3D");
-        currentNode.SetName(currentZoneName);
-        augmentaZoneNode.AddChild(currentNode);
-    }
+
+
+    Log("Node not found, creating node...");
+    currentNode = layer.CreateNode("Geometry::Shape 3D");
+    currentNode.SetName(namecur);
+    augmentaZoneNode.AddChild(currentNode);
+
     currentNode.SetNodeGraphPosition(
-        augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + 2*offsetGraph);
+        augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + 2 * offsetGraph);
     Log("Updating node transform");
     currentNode.SetFloat('Transform.Position X', currentPosition[0]);
     currentNode.SetFloat('Transform.Position Y', currentPosition[1]);
     currentNode.SetFloat('Transform.Position Z', currentPosition[2]);
     // Warning : Looks like there is a value transformation for rotation
-    currentNode.SetFloat('Transform.Rotation Heading', currentRotation[0]);
-    currentNode.SetFloat('Transform.Rotation Pitch', currentRotation[1]);
-    currentNode.SetFloat('Transform.Rotation Bank', currentRotation[2]);
+    currentNode.SetFloat('Transform.Rotation Heading', currentRotation[0] * Math.PI / 180);
+    currentNode.SetFloat('Transform.Rotation Pitch', currentRotation[1] * Math.PI / 180);
+    currentNode.SetFloat('Transform.Rotation Bank', currentRotation[2] * Math.PI / 180);
 
     Log("Updating node attributes");
-    if(currentShape == "Box")
-    {
+    if (currentShape == "Box") {
         currentNode.SetFloat("Attributes.Shape Type", 1); // 1 is Box
         currentNode.SetFloat('Attributes.Size X', currentSize[0]);
         currentNode.SetFloat('Attributes.Size Y', currentSize[1]);
@@ -147,6 +141,7 @@ function syncShapeNodes()
 // Do we want this ?
 function OnKeyPress(key)
 {
+    Log("clavier");
     if (key == 'r')
     {
         Log("You pressed key r ! Starting Augmenta zone sync...")
