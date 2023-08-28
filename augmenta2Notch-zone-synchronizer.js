@@ -143,7 +143,6 @@ function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape,
 // TOTEST
 function OnKeyPress(key)
 {
-    Log("clavier");
     if (key == 'r')
     {
         Log("You pressed key r ! Starting Augmenta zone sync...")
