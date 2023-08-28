@@ -70,7 +70,7 @@ function getJSON(response)
             Log("Json load received");
 
             currentNodesNames = [];
-            var zoneList = json.CONTENTS.worlds.CONTENTS.world.CONTENTS.children.CONTENTS.scene.CONTENTS.children.CONTENTS;
+            var zoneList = json.CONTENTS.worlds.CONTENTS.world.CONTENTS.zones.CONTENTS;
 
             for (var pas = 0; pas < Object.keys(zoneList).length; pas++) {
 
