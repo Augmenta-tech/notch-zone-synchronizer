@@ -92,7 +92,7 @@ function getJSON(response)
                     Log("not a box");
                 }
                 // Creating/updating Notch shape nodes
-                syncShapeNodes(objectZoneList, currentPosition, currentRotation, currentShape, currentSize);
+                syncShapeNodes(objectZoneList, currentPosition, currentRotation, currentShape, currentSize, pas);
             }
 
 
@@ -106,7 +106,7 @@ function getJSON(response)
 }
 
 // Example with one shape with tmp var currentNodeName
-function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape, currentSize)
+function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape, currentSize, nodeNumber)
 {
     Log("Synchronizing current Zone");
 
@@ -117,7 +117,8 @@ function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape,
     augmentaZoneNode.AddChild(currentNode);
 
     currentNode.SetNodeGraphPosition(
-        augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + 2 * offsetGraph);
+        augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + (nodeNumber + 2) * offsetGraph);
+
     Log("Updating node transform");
     currentNode.SetFloat('Transform.Position X', currentPosition[0]);
     currentNode.SetFloat('Transform.Position Y', currentPosition[1]);
@@ -141,7 +142,6 @@ function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape,
 // Do we want this ?
 function OnKeyPress(key)
 {
-    Log("clavier");
     if (key == 'r')
     {
         Log("You pressed key r ! Starting Augmenta zone sync...")
