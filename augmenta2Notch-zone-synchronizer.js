@@ -164,9 +164,9 @@ function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape,
     currentNode.SetNodeGraphPosition(
         augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + (currentNodesNames.length + 2) * offsetGraph);
     Log("Updating node transform");
-    currentNode.SetFloat('Transform.Position X', currentPosition[0]);
-    currentNode.SetFloat('Transform.Position Y', currentPosition[1]);
-    currentNode.SetFloat('Transform.Position Z', currentPosition[2]);
+    currentNode.SetFloat('Transform.Position X', currentPosition[0] + currentSize[0]/2);
+    currentNode.SetFloat('Transform.Position Y', currentPosition[1] + currentSize[1]/2);
+    currentNode.SetFloat('Transform.Position Z', currentPosition[2] + currentSize[2]/2);
     // Warning : Looks like there is a value transformation for rotation
     currentNode.SetFloat('Transform.Rotation Heading', currentRotation[0] * Math.PI / 180);
     currentNode.SetFloat('Transform.Rotation Pitch', currentRotation[1] * Math.PI / 180);
