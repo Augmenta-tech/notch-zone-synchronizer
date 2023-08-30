@@ -71,33 +71,12 @@ function getJSON(response)
             Log("Json load received");
 
             currentNodesNames = [];
-            var zoneNumber = 0;
-            var zoneList = json.CONTENTS.worlds.CONTENTS.world.CONTENTS.children.CONTENTS.scene.CONTENTS.children.CONTENTS;
+            var path = json.CONTENTS.worlds.CONTENTS.world.CONTENTS.children.CONTENTS.scene.CONTENTS.children.CONTENTS;
 
-            for (var pas = 0; pas < Object.keys(zoneList).length; pas++) {
-
-                var objectZoneList = Object.keys(zoneList)[pas];
-                var currentType =  zoneList[objectZoneList].TYPE;
-
-                if (currentType == "Zone"){
-                    // Creating/updating Notch shape nodes
-                    getZone(zoneList, objectZoneList, zoneNumber);
-                    zoneNumber++;
-                }
-                else if (currentType == "Container"){
-                    var zoneList2 = zoneList[objectZoneList].CONTENTS.children.CONTENTS;
-
-                    for(var pas2 = 0; pas2 < Object.keys(zoneList2).length; pas2++){
-                        var objectZoneList2 = Object.keys(zoneList2)[pas2];
-                        getZone(zoneList2, objectZoneList2, zoneNumber);
-                        zoneNumber++;
-                    }
-                    //faire un for et voir pour le pas/zoneNumber et la zone name                    
-                }
-                else {
-                    Log("This is not a Zone");
-                }
-            }  
+            for (var pas = 0; pas < Object.keys(path).length; pas++) {
+                var nameObject = Object.keys(path)[pas];
+                findZoneInContainer(path, nameObject, pas);
+            } 
         } else {
             Log("Did not receive Json load !");
         }
@@ -130,25 +109,45 @@ function getJSON(response)
     return;
 }
 
-function getZone(pathZone, nameZone, zoneNumber)
+function findZoneInContainer(path, nameObject, pas)
 {
-    var currentPosition = pathZone[nameZone].CONTENTS.position.VALUE;
-    var currentRotation = pathZone[nameZone].CONTENTS.rotation.VALUE;
-    var currentShape = pathZone[nameZone].CONTENTS.shape.VALUE;
-    var currentSize
+    var currentName = Object.keys(path)[pas];
+    var currentType = path[currentName].TYPE;
 
-    if (currentShape == "Box") {
-        currentSize = pathZone[nameZone].CONTENTS.box.CONTENTS.boxSize.VALUE;
-    } else {
-        Log("not a box");
+    if (currentType == "Zone"){
+        // Creating/updating Notch shape nodes
+        var currentPosition = path[currentName].CONTENTS.position.VALUE;
+        var currentRotation = path[currentName].CONTENTS.rotation.VALUE;
+        var currentShape = path[currentName].CONTENTS.shape.VALUE;
+        var currentSize
+
+        if (currentShape == "Box") {
+            currentSize = path[currentName].CONTENTS.box.CONTENTS.boxSize.VALUE;
+        } else {
+            Log("not a box");
+        }
+
+        syncShapeNodes(nameObject, currentPosition, currentRotation, currentShape, currentSize);
+        return;
     }
 
-    syncShapeNodes(nameZone, currentPosition, currentRotation, currentShape, currentSize, zoneNumber);
-    return;
+    else if (currentType == "Container") {
+        var path2 = path[currentName].CONTENTS.children.CONTENTS;
+
+        for (var pas2 = 0; pas2 < Object.keys(path2).length; pas2++){            
+            var nameObject2 = nameObject + " " + Object.keys(path2)[pas2];
+            findZoneInContainer(path2, nameObject2, pas2);
+        }
+    }
+
+    else {
+        Log("This is not a Zone");
+        return;
+    }
 }
 
 // Example with one shape with tmp var currentNodeName
-function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape, currentSize, zoneNumber)
+function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape, currentSize)
 {
     Log("Synchronizing current Zone");
 
@@ -163,7 +162,7 @@ function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape,
     }
 
     currentNode.SetNodeGraphPosition(
-        augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + (zoneNumber + 2) * offsetGraph);
+        augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + (currentNodesNames.length + 2) * offsetGraph);
     Log("Updating node transform");
     currentNode.SetFloat('Transform.Position X', currentPosition[0]);
     currentNode.SetFloat('Transform.Position Y', currentPosition[1]);
