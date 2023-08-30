@@ -71,27 +71,33 @@ function getJSON(response)
             Log("Json load received");
 
             currentNodesNames = [];
+            var zoneNumber = 0;
             var zoneList = json.CONTENTS.worlds.CONTENTS.world.CONTENTS.children.CONTENTS.scene.CONTENTS.children.CONTENTS;
 
             for (var pas = 0; pas < Object.keys(zoneList).length; pas++) {
 
                 var objectZoneList = Object.keys(zoneList)[pas];
+                var currentType =  zoneList[objectZoneList].TYPE;
 
-                var currentPosition = zoneList[objectZoneList].CONTENTS.position.VALUE;
-                var currentRotation = zoneList[objectZoneList].CONTENTS.rotation.VALUE;
-                var currentShape = zoneList[objectZoneList].CONTENTS.shape.VALUE;
-                var currentSize
-
-                if (currentShape == "Box") {
-                    currentSize = zoneList[objectZoneList].CONTENTS.box.CONTENTS.boxSize.VALUE;
-                } else {
-                    Log("not a box");
+                if (currentType == "Zone"){
+                    // Creating/updating Notch shape nodes
+                    getZone(zoneList, objectZoneList, zoneNumber);
+                    zoneNumber++;
                 }
-                // Creating/updating Notch shape nodes
-                syncShapeNodes(objectZoneList, currentPosition, currentRotation, currentShape, currentSize, pas);
-            }
+                else if (currentType == "Container"){
+                    var zoneList2 = zoneList[objectZoneList].CONTENTS.children.CONTENTS;
 
-            
+                    for(var pas2 = 0; pas2 < Object.keys(zoneList2).length; pas2++){
+                        var objectZoneList2 = Object.keys(zoneList2)[pas2];
+                        getZone(zoneList2, objectZoneList2, zoneNumber);
+                        zoneNumber++;
+                    }
+                    //faire un for et voir pour le pas/zoneNumber et la zone name                    
+                }
+                else {
+                    Log("This is not a Zone");
+                }
+            }  
         } else {
             Log("Did not receive Json load !");
         }
@@ -124,8 +130,25 @@ function getJSON(response)
     return;
 }
 
+function getZone(pathZone, nameZone, zoneNumber)
+{
+    var currentPosition = pathZone[nameZone].CONTENTS.position.VALUE;
+    var currentRotation = pathZone[nameZone].CONTENTS.rotation.VALUE;
+    var currentShape = pathZone[nameZone].CONTENTS.shape.VALUE;
+    var currentSize
+
+    if (currentShape == "Box") {
+        currentSize = pathZone[nameZone].CONTENTS.box.CONTENTS.boxSize.VALUE;
+    } else {
+        Log("not a box");
+    }
+
+    syncShapeNodes(nameZone, currentPosition, currentRotation, currentShape, currentSize, zoneNumber);
+    return;
+}
+
 // Example with one shape with tmp var currentNodeName
-function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape, currentSize, nodeNumber)
+function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape, currentSize, zoneNumber)
 {
     Log("Synchronizing current Zone");
 
@@ -140,7 +163,7 @@ function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape,
     }
 
     currentNode.SetNodeGraphPosition(
-        augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + (nodeNumber + 2) * offsetGraph);
+        augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + (zoneNumber + 2) * offsetGraph);
     Log("Updating node transform");
     currentNode.SetFloat('Transform.Position X', currentPosition[0]);
     currentNode.SetFloat('Transform.Position Y', currentPosition[1]);
