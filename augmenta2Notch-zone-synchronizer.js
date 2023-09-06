@@ -11,6 +11,7 @@ var augmentaScriptGraphPosition;
 var augmentaZoneNode;
 var augmentaZoneNodeName = "Augmenta zones";
 var currentNodesNames = [];
+var zoneToDelete = [];
 var offsetGraph = 60;
 
 function Init()
@@ -85,7 +86,7 @@ function getJSON(response)
         Log("Did not receive Json load !"); 
     }
 
-   deleteNode();
+    deleteNode();
 
     return;
 }
@@ -147,26 +148,35 @@ function findZoneInContainer(path, nameObject, pas, parentNodeName)
     }
 }
 
-function deleteNode()
+function findDeletedZone(node)
 {
-    var numChildren = augmentaZoneNode.GetNumChildren();
-    var zoneToDelete = [];
+    zoneToDelete.push(node);
 
-    for (i = 0; i < numChildren; i++) {
-        var child = augmentaZoneNode.GetChild(i);
-        zoneToDelete.push(child);
-
-        for (j = 0; j < currentNodesNames.length; j++) {
-            if (child.GetName() == currentNodesNames[j]) {
-                zoneToDelete.pop();
-                break;
-            }
+    for (var i = 0; i < currentNodesNames.length; i++) {
+        if (node.GetName() == currentNodesNames[i] || node.GetName() == augmentaZoneNodeName) {
+            zoneToDelete.pop();
+            break;
         }
     }
 
+    var numChildren = node.GetNumChildren();
+    if (numChildren > 0) {
+        for (var j = 0; j < numChildren; j++) {
+            var child = node.GetChild(j);
+            findDeletedZone(child);
+        }
+    }
 
+    return;
+}
+function deleteNode()
+{
+    zoneToDelete = [];
+    findDeletedZone(augmentaZoneNode);
 
-    for (k = 0; k < zoneToDelete.length; k++) {
+    for (var k = 0; k < zoneToDelete.length; k++) {
+        var node = zoneToDelete[k];
+
         if (node.GetNumParents() != 0) {
             node.GetParent(0).RemoveChild(node);
         }
@@ -190,9 +200,7 @@ function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape,
         Log("Node not found, creating node...");
         currentNode = layer.CreateNode("Geometry::Shape 3D");
         currentNode.SetName(namecur);
-        
-        Log(namecur);
-        Log(parentNodeName);
+
         if (parentNode) {
             parentNode.AddChild(currentNode);            
         }
