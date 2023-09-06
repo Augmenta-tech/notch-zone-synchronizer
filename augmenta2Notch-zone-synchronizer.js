@@ -75,7 +75,8 @@ function getJSON(response)
 
             for (var pas = 0; pas < Object.keys(path).length; pas++) {
                 var nameObject = Object.keys(path)[pas];
-                findZoneInContainer(path, nameObject, pas);
+
+                findZoneInContainer(path, nameObject, pas, augmentaZoneNodeName);
             } 
         } else {
             Log("Did not receive Json load !");
@@ -83,33 +84,13 @@ function getJSON(response)
     } else {
         Log("Did not receive Json load !"); 
     }
-    
-    numChildren = augmentaZoneNode.GetNumChildren();
-    var p = 0;
-    for (i = 0; i < numChildren; i++) {
-        child = augmentaZoneNode.GetChild(p);
 
-        var inCurrentScene = false;
-        for (j = 0; j < currentNodesNames.length; j++) {
-            if (child.GetName() == currentNodesNames[j]) {
-                inCurrentScene = true;
-                break;
-            }
-        }
-
-        if (inCurrentScene) {
-            p++;
-        }
-        else {
-            augmentaZoneNode.RemoveChild(child);
-            child.DeleteNode();
-        }
-    }
+   deleteNode();
 
     return;
 }
 
-function findZoneInContainer(path, nameObject, pas)
+function findZoneInContainer(path, nameObject, pas, parentNodeName)
 {
     var currentName = Object.keys(path)[pas];
     var currentType = path[currentName].TYPE;
@@ -127,16 +108,36 @@ function findZoneInContainer(path, nameObject, pas)
             Log("not a box");
         }
 
-        syncShapeNodes(nameObject, currentPosition, currentRotation, currentShape, currentSize);
+        syncShapeNodes(nameObject, currentPosition, currentRotation, currentShape, currentSize, parentNodeName);
         return;
     }
 
     else if (currentType == "Container") {
         var path2 = path[currentName].CONTENTS.children.CONTENTS;
 
+        var containerNode = layer.FindNode(nameObject);
+        var parentNode = layer.FindNode(parentNodeName);
+        if (containerNode) {
+            Log("Augmenta zones node found");
+        } else {
+
+            containerNode = layer.CreateNode("Geometry::Null");
+            containerNode.SetName(nameObject);
+                       
+            if (parentNode) {
+                parentNode.AddChild(containerNode);
+            }
+            else {
+                augmentaZoneNode.AddChild(containerNode);
+            }
+        }
+
+        containerNode.SetNodeGraphPosition(parentNode.GetNodeGraphPosition()[0] + offsetGraph/2, augmentaScriptGraphPosition[1] + (currentNodesNames.length + 2) * offsetGraph);
+        currentNodesNames.push(nameObject);
+
         for (var pas2 = 0; pas2 < Object.keys(path2).length; pas2++){            
-            var nameObject2 = nameObject + " " + Object.keys(path2)[pas2];
-            findZoneInContainer(path2, nameObject2, pas2);
+            var nameObject2 = nameObject + "/" + Object.keys(path2)[pas2];
+            findZoneInContainer(path2, nameObject2, pas2, nameObject);
         }
     }
 
@@ -146,23 +147,63 @@ function findZoneInContainer(path, nameObject, pas)
     }
 }
 
+function deleteNode()
+{
+    var numChildren = augmentaZoneNode.GetNumChildren();
+    var zoneToDelete = [];
+
+    for (i = 0; i < numChildren; i++) {
+        var child = augmentaZoneNode.GetChild(i);
+        zoneToDelete.push(child);
+
+        for (j = 0; j < currentNodesNames.length; j++) {
+            if (child.GetName() == currentNodesNames[j]) {
+                zoneToDelete.pop();
+                break;
+            }
+        }
+    }
+
+
+
+    for (k = 0; k < zoneToDelete.length; k++) {
+        if (node.GetNumParents() != 0) {
+            node.GetParent(0).RemoveChild(node);
+        }
+
+        node.DeleteNode();
+    }
+
+    return;
+}
+
 // Example with one shape with tmp var currentNodeName
-function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape, currentSize)
+function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape, currentSize, parentNodeName)
 {
     Log("Synchronizing current Zone");
 
-    currentNode = layer.FindNode(namecur);
+    var currentNode = layer.FindNode(namecur);
+    var parentNode = layer.FindNode(parentNodeName);
     if (currentNode) {
         //Log("Node found")
     } else {
         Log("Node not found, creating node...");
         currentNode = layer.CreateNode("Geometry::Shape 3D");
         currentNode.SetName(namecur);
-        augmentaZoneNode.AddChild(currentNode);
+        
+        Log(namecur);
+        Log(parentNodeName);
+        if (parentNode) {
+            parentNode.AddChild(currentNode);            
+        }
+        else {
+            augmentaZoneNode.AddChild(currentNode);
+        }
     }
 
     currentNode.SetNodeGraphPosition(
-        augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + (currentNodesNames.length + 2) * offsetGraph);
+        parentNode.GetNodeGraphPosition()[0] + offsetGraph/2, augmentaScriptGraphPosition[1] + (currentNodesNames.length + 2) * offsetGraph);
+
     Log("Updating node transform");
     currentNode.SetFloat('Transform.Position X', currentPosition[0] + currentSize[0]/2);
     currentNode.SetFloat('Transform.Position Y', currentPosition[1] + currentSize[1]/2);
