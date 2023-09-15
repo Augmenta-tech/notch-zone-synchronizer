@@ -119,7 +119,7 @@ function findZoneInContainer(path, nameObject, pas, parentNodeName)
         return;
     }
 
-    else if (currentType == "Container") {
+    else if (currentType == "Container" || currentType == "MultiZone") {
         var path2 = path[currentName].CONTENTS.children.CONTENTS;
 
         var containerNode = layer.FindNode(nameObject);
