@@ -105,8 +105,14 @@ function findZoneInContainer(path, nameObject, pas, parentNodeName)
 
         if (currentShape == "Box") {
             currentSize = path[currentName].CONTENTS.box.CONTENTS.boxSize.VALUE;
+        }
+        else if (currentShape == "Sphere") {
+            currentSize = path[currentName].CONTENTS.sphere.CONTENTS.radius.VALUE;
+        }
+        else if (currentShape == "Cylinder") {
+            currentSize = [path[currentName].CONTENTS.cylinder.CONTENTS.radius.VALUE, path[currentName].CONTENTS.cylinder.CONTENTS.height.VALUE];
         } else {
-            Log("not a box");
+            Log("not a commun shape");
         }
 
         syncShapeNodes(nameObject, currentPosition, currentRotation, currentShape, currentSize, parentNodeName);
@@ -213,10 +219,7 @@ function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape,
         parentNode.GetNodeGraphPosition()[0] + offsetGraph/2, augmentaScriptGraphPosition[1] + (currentNodesNames.length + 2) * offsetGraph);
 
     Log("Updating node transform");
-    currentNode.SetFloat('Transform.Position X', currentPosition[0] + currentSize[0]/2);
-    currentNode.SetFloat('Transform.Position Y', currentPosition[1] + currentSize[1]/2);
-    currentNode.SetFloat('Transform.Position Z', currentPosition[2] + currentSize[2]/2);
-
+    
     currentNode.SetFloat('Transform.Rotation Heading', currentRotation[0] * Math.PI / 180);
     currentNode.SetFloat('Transform.Rotation Pitch', currentRotation[1] * Math.PI / 180);
     currentNode.SetFloat('Transform.Rotation Bank', currentRotation[2] * Math.PI / 180);
@@ -224,10 +227,33 @@ function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape,
     Log("Updating node attributes");
     if(currentShape == "Box")
     {
+        currentNode.SetFloat('Transform.Position X', currentPosition[0] + currentSize[0] / 2);
+        currentNode.SetFloat('Transform.Position Y', currentPosition[1] + currentSize[1] / 2);
+        currentNode.SetFloat('Transform.Position Z', currentPosition[2] + currentSize[2] / 2);
+
         currentNode.SetFloat("Attributes.Shape Type", 1); // 1 is Box
         currentNode.SetFloat('Attributes.Size X', currentSize[0]);
         currentNode.SetFloat('Attributes.Size Y', currentSize[1]);
         currentNode.SetFloat('Attributes.Size Z', currentSize[2]);
+    }
+    else if (currentShape == "Sphere") {
+        currentNode.SetFloat('Transform.Position X', currentPosition[0]);
+        currentNode.SetFloat('Transform.Position Y', currentPosition[1]);
+        currentNode.SetFloat('Transform.Position Z', currentPosition[2]);
+
+        currentNode.SetFloat("Attributes.Shape Type", 0); // 0 is Sphere
+        currentNode.SetFloat('Attributes.Radius', currentSize);
+        //currentNode.SetFloat('Attributes.Size Mode', 0);
+    }
+    else if (currentShape == "Cylinder") {
+        currentNode.SetFloat('Transform.Position X', currentPosition[0]);
+        currentNode.SetFloat('Transform.Position Y', currentPosition[1]);
+        currentNode.SetFloat('Transform.Position Z', currentPosition[2]);
+
+        currentNode.SetFloat("Attributes.Shape Type", 3); // 3 is Cylinder
+        currentNode.SetFloat('Attributes.Radius', currentSize[0]);
+        currentNode.SetFloat('Attributes.Size Y', currentSize[1]);
+        //currentNode.SetFloat('Attributes.Size Mode', 0);
     } else {
         //Log("test is not a box");
     }
