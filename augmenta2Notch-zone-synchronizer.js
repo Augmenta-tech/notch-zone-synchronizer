@@ -139,7 +139,19 @@ function findZoneInContainer(path, nameObject, pas, parentNodeName)
             }
         }
 
-        containerNode.SetNodeGraphPosition(parentNode.GetNodeGraphPosition()[0] + offsetGraph/2, augmentaScriptGraphPosition[1] + (currentNodesNames.length + 2) * offsetGraph);
+        var currentPosition = path[currentName].CONTENTS.position.VALUE;
+        var currentRotation = path[currentName].CONTENTS.rotation.VALUE;
+
+        containerNode.SetNodeGraphPosition(parentNode.GetNodeGraphPosition()[0] + offsetGraph / 2, augmentaScriptGraphPosition[1] + (currentNodesNames.length + 2) * offsetGraph);
+
+        containerNode.SetFloat('Transform.Position X', currentPosition[0]);
+        containerNode.SetFloat('Transform.Position Y', currentPosition[1]);
+        containerNode.SetFloat('Transform.Position Z', currentPosition[2]);
+
+        containerNode.SetFloat('Transform.Rotation Heading', currentRotation[0] * Math.PI / 180);
+        containerNode.SetFloat('Transform.Rotation Pitch', currentRotation[1] * Math.PI / 180);
+        containerNode.SetFloat('Transform.Rotation Bank', currentRotation[2] * Math.PI / 180);
+
         currentNodesNames.push(nameObject);
 
         for (var pas2 = 0; pas2 < Object.keys(path2).length; pas2++){            
