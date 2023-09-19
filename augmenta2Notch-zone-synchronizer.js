@@ -2,41 +2,56 @@
 var SyncZones;
 var RemoteAddress;
 var RemotePort;
+var WorldName;
+var AugmentaScriptNodeName;
+var SceneName;
 
 // global var
 var layer;
 var augmentaScriptNode;
-var augmentaScriptNodeName = "Augmenta zone synchronizer";
 var augmentaScriptGraphPosition;
 var augmentaZoneNode;
-var augmentaZoneNodeName = "Augmenta zones";
+var isInitialize = false;
 var currentNodesNames = [];
 var zoneToDelete = [];
 var offsetGraph = 60;
+var containerNumber = 0;
 
 function Init()
 {
-	Log("Augmenta zones synchronizer v0.1");
-    layer = Document.GetLayer(0);
-    augmentaScriptNode = layer.FindNode(augmentaScriptNodeName);
-    Initialize();
+    Log("Augmenta zones synchronizer v0.1");
 }
 
 function Initialize()
 {
+    for (var i = 0; i < Document.GetNumLayers(); i++) {
+        layer = Document.GetLayer(i);
+        augmentaScriptNode = layer.FindNode(AugmentaScriptNodeName);
+        Log(AugmentaScriptNodeName);
+        if (augmentaScriptNode) break;
+    }
+
+    if (!augmentaScriptNode) {
+        Log("No layer found with the Augmenta zone synchronizer");
+        return;
+    }
+
     // Get augmenta script node Graph position
     augmentaScriptGraphPosition = augmentaScriptNode.GetNodeGraphPosition();
 
     // Create augmenta null node
-    augmentaZoneNode = layer.FindNode(augmentaZoneNodeName);
+    augmentaZoneNode = layer.FindNode(SceneName);
     if (augmentaZoneNode) {
         //Log("Augmenta zones node found")
     } else {
         Log("Augmenta zones node not found, creating node...");
         augmentaZoneNode = layer.CreateNode("Geometry::Null");
-        augmentaZoneNode.SetName(augmentaZoneNodeName);
+        augmentaZoneNode.SetName(SceneName);
     }
+
     augmentaZoneNode.SetNodeGraphPosition(augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + offsetGraph);
+
+    isInitialize = true;
 }
 
 function Update()
@@ -51,7 +66,8 @@ function Update()
 
 function syncZones()
 {
-    Initialize();
+    if (!isInitialize || !layer.FindNode(SceneName)) Initialize();
+    else augmentaZoneNode.SetNodeGraphPosition(augmentaScriptGraphPosition[0], augmentaScriptGraphPosition[1] + offsetGraph);
     
     // Json request and callback
     req = { method: 'GET' };
@@ -71,13 +87,25 @@ function getJSON(response)
         if(json) {
             Log("Json load received");
 
+            var currentPosition = json.CONTENTS.worlds.CONTENTS[WorldName].CONTENTS.children.CONTENTS.scene.CONTENTS.position.VALUE;
+            var currentRotation = json.CONTENTS.worlds.CONTENTS[WorldName].CONTENTS.children.CONTENTS.scene.CONTENTS.rotation.VALUE;
+
+            augmentaZoneNode.SetFloat('Transform.Position X', currentPosition[0]);
+            augmentaZoneNode.SetFloat('Transform.Position Y', currentPosition[1]);
+            augmentaZoneNode.SetFloat('Transform.Position Z', currentPosition[2]);
+
+            augmentaZoneNode.SetFloat('Transform.Rotation Heading', currentRotation[1] * Math.PI / 180);
+            augmentaZoneNode.SetFloat('Transform.Rotation Pitch', currentRotation[0] * Math.PI / 180);
+            augmentaZoneNode.SetFloat('Transform.Rotation Bank', currentRotation[2] * Math.PI / 180);
+
             currentNodesNames = [];
-            var path = json.CONTENTS.worlds.CONTENTS.world.CONTENTS.children.CONTENTS.scene.CONTENTS.children.CONTENTS;
+            containerNumber = 0;
+            var path = json.CONTENTS.worlds.CONTENTS[WorldName].CONTENTS.children.CONTENTS.scene.CONTENTS.children.CONTENTS;
 
             for (var pas = 0; pas < Object.keys(path).length; pas++) {
-                var nameObject = Object.keys(path)[pas];
+                var nameObject = SceneName + "/" + Object.keys(path)[pas];
 
-                findZoneInContainer(path, nameObject, pas, augmentaZoneNodeName);
+                findZoneInContainer(path, nameObject, pas, SceneName);
             } 
         } else {
             Log("Did not receive Json load !");
@@ -142,17 +170,18 @@ function findZoneInContainer(path, nameObject, pas, parentNodeName)
         var currentPosition = path[currentName].CONTENTS.position.VALUE;
         var currentRotation = path[currentName].CONTENTS.rotation.VALUE;
 
-        containerNode.SetNodeGraphPosition(parentNode.GetNodeGraphPosition()[0] + offsetGraph / 2, augmentaScriptGraphPosition[1] + (currentNodesNames.length + 2) * offsetGraph);
+        containerNode.SetNodeGraphPosition(parentNode.GetNodeGraphPosition()[0] + offsetGraph / 2, augmentaScriptGraphPosition[1] + (containerNumber + 2) * offsetGraph);
 
         containerNode.SetFloat('Transform.Position X', currentPosition[0]);
         containerNode.SetFloat('Transform.Position Y', currentPosition[1]);
         containerNode.SetFloat('Transform.Position Z', currentPosition[2]);
 
-        containerNode.SetFloat('Transform.Rotation Heading', currentRotation[0] * Math.PI / 180);
-        containerNode.SetFloat('Transform.Rotation Pitch', currentRotation[1] * Math.PI / 180);
+        containerNode.SetFloat('Transform.Rotation Heading', currentRotation[1] * Math.PI / 180);
+        containerNode.SetFloat('Transform.Rotation Pitch', currentRotation[0] * Math.PI / 180);
         containerNode.SetFloat('Transform.Rotation Bank', currentRotation[2] * Math.PI / 180);
 
         currentNodesNames.push(nameObject);
+        containerNumber++;
 
         for (var pas2 = 0; pas2 < Object.keys(path2).length; pas2++){            
             var nameObject2 = nameObject + "/" + Object.keys(path2)[pas2];
@@ -171,7 +200,7 @@ function findDeletedZone(node)
     zoneToDelete.push(node);
 
     for (var i = 0; i < currentNodesNames.length; i++) {
-        if (node.GetName() == currentNodesNames[i] || node.GetName() == augmentaZoneNodeName) {
+        if (node.GetName() == currentNodesNames[i] || node.GetName() == SceneName) {
             zoneToDelete.pop();
             break;
         }
@@ -211,65 +240,83 @@ function syncShapeNodes(namecur, currentPosition, currentRotation, currentShape,
     Log("Synchronizing current Zone");
 
     var currentNode = layer.FindNode(namecur);
+     
     var parentNode = layer.FindNode(parentNodeName);
+
     if (currentNode) {
-        //Log("Node found")
+        var currentShapeNode = currentNode.GetChild(0);
     } else {
         Log("Node not found, creating node...");
-        currentNode = layer.CreateNode("Geometry::Shape 3D");
+        currentNode = layer.CreateNode("Geometry::Null");
         currentNode.SetName(namecur);
+        currentShapeNode = layer.CreateNode("Geometry::Shape 3D");
+        currentShapeNode.SetName(namecur + " shape");
+        currentNode.AddChild(currentShapeNode);
 
         if (parentNode) {
-            parentNode.AddChild(currentNode);            
+            parentNode.AddChild(currentNode);
         }
         else {
             augmentaZoneNode.AddChild(currentNode);
+            Log(augmentaZoneNode.getName());
         }
     }
 
     currentNode.SetNodeGraphPosition(
-        parentNode.GetNodeGraphPosition()[0] + offsetGraph/2, augmentaScriptGraphPosition[1] + (currentNodesNames.length + 2) * offsetGraph);
+        parentNode.GetNodeGraphPosition()[0] + offsetGraph / 2, augmentaScriptGraphPosition[1] + (containerNumber + 2) * offsetGraph);
+    currentShapeNode.SetNodeGraphPosition(
+        parentNode.GetNodeGraphPosition()[0] + offsetGraph * 4, augmentaScriptGraphPosition[1] + (containerNumber + 2) * offsetGraph);
 
     Log("Updating node transform");
+
+    currentNode.SetFloat('Transform.Position X', currentPosition[0]);
+    currentNode.SetFloat('Transform.Position Y', currentPosition[1]);
+    currentNode.SetFloat('Transform.Position Z', currentPosition[2]);
     
-    currentNode.SetFloat('Transform.Rotation Heading', currentRotation[0] * Math.PI / 180);
-    currentNode.SetFloat('Transform.Rotation Pitch', currentRotation[1] * Math.PI / 180);
+    currentNode.SetFloat('Transform.Rotation Heading', currentRotation[1] * Math.PI / 180);
+    currentNode.SetFloat('Transform.Rotation Pitch', currentRotation[0] * Math.PI / 180);
     currentNode.SetFloat('Transform.Rotation Bank', currentRotation[2] * Math.PI / 180);
 
     Log("Updating node attributes");
     if(currentShape == "Box")
     {
-        currentNode.SetFloat('Transform.Position X', currentPosition[0] + currentSize[0] / 2);
-        currentNode.SetFloat('Transform.Position Y', currentPosition[1] + currentSize[1] / 2);
-        currentNode.SetFloat('Transform.Position Z', currentPosition[2] + currentSize[2] / 2);
+        currentShapeNode.SetFloat('Transform.Position X', currentSize[0] / 2);
+        currentShapeNode.SetFloat('Transform.Position Y', currentSize[1] / 2);
+        currentShapeNode.SetFloat('Transform.Position Z', currentSize[2] / 2);
 
-        currentNode.SetFloat("Attributes.Shape Type", 1); // 1 is Box
-        currentNode.SetFloat('Attributes.Size X', currentSize[0]);
-        currentNode.SetFloat('Attributes.Size Y', currentSize[1]);
-        currentNode.SetFloat('Attributes.Size Z', currentSize[2]);
+        currentShapeNode.SetFloat("Attributes.Shape Type", 1); // 1 is Box
+        currentShapeNode.SetFloat('Attributes.Size X', currentSize[0]);
+        currentShapeNode.SetFloat('Attributes.Size Y', currentSize[1]);
+        currentShapeNode.SetFloat('Attributes.Size Z', currentSize[2]);
     }
     else if (currentShape == "Sphere") {
-        currentNode.SetFloat('Transform.Position X', currentPosition[0]);
-        currentNode.SetFloat('Transform.Position Y', currentPosition[1]);
-        currentNode.SetFloat('Transform.Position Z', currentPosition[2]);
+        //currentShapeNode.SetFloat('Transform.Position X', currentPosition[0]);
+        //currentShapeNode.SetFloat('Transform.Position Y', currentPosition[1]);
+        //currentShapeNode.SetFloat('Transform.Position Z', currentPosition[2]);
 
-        currentNode.SetFloat("Attributes.Shape Type", 0); // 0 is Sphere
-        currentNode.SetFloat('Attributes.Radius', currentSize);
-        //currentNode.SetFloat('Attributes.Size Mode', 0);
+        currentShapeNode.SetFloat("Attributes.Shape Type", 0); // 0 is Sphere
+        currentShapeNode.SetFloat('Attributes.Radius', currentSize);
+        currentShapeNode.SetFloat('Attributes.Size Mode', 0);
     }
     else if (currentShape == "Cylinder") {
-        currentNode.SetFloat('Transform.Position X', currentPosition[0]);
-        currentNode.SetFloat('Transform.Position Y', currentPosition[1]);
-        currentNode.SetFloat('Transform.Position Z', currentPosition[2]);
+        //currentShapeNode.SetFloat('Transform.Position X', currentPosition[0]);
+        currentShapeNode.SetFloat('Transform.Position Y', currentSize[1] / 2);
+        //currentShapeNode.SetFloat('Transform.Position Z', currentPosition[2]);
 
-        currentNode.SetFloat("Attributes.Shape Type", 3); // 3 is Cylinder
-        currentNode.SetFloat('Attributes.Radius', currentSize[0]);
-        currentNode.SetFloat('Attributes.Size Y', currentSize[1]);
-        //currentNode.SetFloat('Attributes.Size Mode', 0);
+        currentShapeNode.SetFloat("Attributes.Shape Type", 3); // 3 is Cylinder
+        currentShapeNode.SetFloat('Attributes.Radius', currentSize[0]);
+        currentShapeNode.SetFloat('Attributes.Size Y', currentSize[1] / 2);
+        currentShapeNode.SetFloat('Attributes.Size Mode', 0);
     } else {
         //Log("test is not a box");
     }
+
+    currentNode.SetVisible(false);
+
     currentNodesNames.push(namecur);
+    currentNodesNames.push(namecur + " shape");
+    containerNumber++;
+
 }
 
 // TOTEST
