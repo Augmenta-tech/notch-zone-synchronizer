@@ -17,7 +17,7 @@ Get the provided example or follow this instructions to make it work from a blan
 - Create a Javascript node and rename it
 - On the node inspector : Add Global Input (float) and rename it to "SyncZones"
 - On the node inspector : Add 2x Global Input (string) and rename it to "RemoteAddress" and "RemotePort"
-- On the node inspector : Add 1x Global Input (string) and rename it to "WorldName", the WorldName parameter is the name of the pléiades world without spaces or capital letters
+- On the node inspector : Add 1x Global Input (string) and rename it to "WorldName", the WorldName parameter is the name of the pléiades world without spaces or capital letters (for example "My World" would be "myWorld")
 - On the node inspector : Add 2x Global Input (string) and rename it to "AugmentaScriptNodeName" and "SceneName", the AugmentaScriptNodeName must have the same name as the Javascript node and put a name to the scene
 - In project > settings > protocols, enable osc and TUIO (in case you need it)
 
