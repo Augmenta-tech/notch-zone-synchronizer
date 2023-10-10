@@ -197,7 +197,11 @@ function findZoneInContainer(path, nameObject, pas, parentNodeName)
 
 function findDeletedZone(node)
 {
-    zoneToDelete.push(node);
+    if (node.GetName().indexOf(SceneName) !== -1) {
+        zoneToDelete.push(node);
+    }
+    else return;
+    
 
     for (var i = 0; i < currentNodesNames.length; i++) {
         if (node.GetName() == currentNodesNames[i] || node.GetName() == SceneName) {
